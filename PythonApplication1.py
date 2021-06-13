@@ -1,7 +1,6 @@
 import string
 import random
-
-full_meal_list = []
+import sys
 
 class meal:
     name = ""
@@ -9,9 +8,20 @@ class meal:
     def __init__(self, name, ingredients):
         self.name = name
         self.ingredients = ingredients
-    
 
-def updateMeal():
+full_meal_list = []
+
+def initializeMainList():
+    f_meal = open("Meals.txt", "r")
+    for item in f_meal.readlines():
+        meal_components = item.split(':')
+        meal_name = meal_components[0]
+        str1 = meal_components[1]
+        str1 = str1.replace('\n', "")
+        meal_ingredients = str1.split('+')
+        full_meal_list.append(meal(meal_name,meal_ingredients))
+
+def updateMealText():
     with open("Meals.txt", "w") as f:
         for item in full_meal_list:
             f.write(item.name + ":")
@@ -23,98 +33,131 @@ def updateMeal():
             f.write("\n")
     f.close()
 
-def addMeal():
+def addMealMain():
     meal_name = input("Enter meal name:")
-    #meal_name = "*" + meal_name + "-"
     ingr_list = [""]
     adding = True
     while adding:
         str1 = input("Exit[x] : Otherwise enter ingredient name:")
         if str1 == "x": 
-            #str1 + "-"
             adding = False
             break
         ingr_list.append(str1)
 
-    obj = meal(meal_name, ingr_list)
-    full_meal_list.append(obj)
+    full_meal_list.append(meal(meal_name, ingr_list))
+    updateMealText()
     
-
-
-
-def displayTotalMealList():
+def removeMeal():
+    target = input("Meal to remove: ")
     for item in full_meal_list:
-        print(item.name)
+        if target == item.name:
+            full_meal_list.remove(item)
+            updateMealText()
+            return
+    print("Meal not found")
 
-addMeal()
-addMeal()
-updateMeal()
-#print(len(full_meal_list))
-#print(full_meal_list[0].name)
-#f_meal = open("Meals.txt", "r")
-#for item in f_meal.readlines():         
-    #print(item)
+def displayMealList(meal_list):
+    counter = 1
+    for item in meal_list:
+        print(str(counter) + ". " + item.name)
+        counter += 1
+
+def printIngredientList(target):
+    counter = 1
+    for item in full_meal_list[target].ingredients:
+        print(str(counter) + ". " + item)
+        counter += 1
+
+def chooseFourMeals():
+    available_options = len(full_meal_list)
+    numbers = random.sample(range(available_options-1), 4)
+    meal_options = []
+    counter = 0
+    for item in numbers:
+        value = numbers[counter]
+        meal_options.append(full_meal_list[value])
+        counter += 1
+    return meal_options
+
+def acceptMealSuggestion():
+    accepted = False
+    while accepted != True:
+        temp = chooseFourMeals()
+        displayMealList(temp)
+        str1 = input("Accept Plan? [y]/[n]")
+        if str1 == "y":
+            return temp
+
+def findInList(meal_name, list):
+    for meals in list:
+        if meals.name == meal_name:
+            return meals
+
+def editMealEntry():
+    displayMealList(full_meal_list)
+    target = int(input("\nMeal Number to edit: "))
+    func = int(input("\nWhat would you like to edit? [1] Name [2] Ingredients: "))
+    if func == 1:
+        full_meal_list[target].name = input("\nEnter New Meal Name: ")
+    elif func == 2:
+        printIngredientList(target)
+        target1 = int(input("\nIngredient Number to edit: "))
+        full_meal_list[target].ingredients[target1] = input("\nEnter New Ingredient Name: ")
+    updateMealText()
 
 
-            
+def writeGroceryList():
+    planned_meals = acceptMealSuggestion()
+    with open("Grocery_List.txt", "w+") as f:
+        for item in planned_meals:
+            f.write("Meal name:  " + item.name + "\n\nIngredients needed:\n")
+            for it in item.ingredients:
+                f.write(it + "\n")
+            f.write("\n")
 
-            
+def addMeal():
+    adding = True
+    while adding == True:
+        addMealMain()
+        str1 = input("Done? [y]")
+        if str1 == "y": break
 
-
-
-#with open("Meals.txt", "w") as f_meal:
- #   try:
-  #      f_meal.write("*Cheeseburger-Patty, Burger, Cheese-" + '\n')
-   #     f_meal.write("*Gnocchi-Spinach, Soup, Cream-" + '\n')
-#        f_meal.write("*3-4, 6, 7-" + '\n')
- #   finally:
-  #      f_meal.close()
-
-#f_meal = open("Meals.txt", "r")
-#for item in f_meal.readlines():
- #   str1 = item
- #   if str1.startswith("*") != True:
- #       print("Error, meal name wrong")
- #       continue
- #   meal_components = str1.split('-')
- #   obj = meal(meal_components[0],meal_components[1])
- #   full_meal_list.append(obj)
-#if full_meal_list[0] != None:
-#    for item in full_meal_list:
-#        print(item.name)
-#        print(item.ingredients)
-
-
-
-    #print(meal_components[0])
-    #print(meal_components[1])
+def menuSelect(select):
+    if select == 1:
+        writeGroceryList()
+    elif select == 2:
+        addMeal()
+    elif select == 3:
+        editMealEntry()
+    elif select == 4:
+        removeMeal()
+    elif select == 5:
+        displayMealList(full_meal_list)
+    elif select == 6:
+        sys.exit(0)
+    else:
+        return mainMenu()
     
-    #obj.name = meal_components[0]
-    #obj.ingredients = meal_components[1]
 
-    #print(obj.name)
-    #print(obj.ingredients)
-
-
+def mainMenu():
     
-    #full_meal_list.append(meal(meal_components[0],meal_components[1]))
-    #print(full_meal_list)
-    #meal_item_name = meal_components[0]
-    #print("This is your string: " + str1)
-    #print("This is new: ")
-    #print(str1.replace('*',''))
+    print("""
+    1. Create Meal Plan
+    2. Add Meal
+    3. Edit Meal
+    4. Remove Meal
+    5. Show Meals
+    6. Exit
+    """)
+    user_select = int(input("Enter Option: "))
+    menuSelect(user_select)
+    
+def startProgram():
+    running = True
+    initializeMainList()
+    while running == True:
+        mainMenu()
 
-    #str1.split('-')
 
-    #print(item.split('-'))
-    #print("\n")
-
-
-
-
-
-#print(f_meal.readline())
-
-
-#first_meal = meal("Cheeseburger",["Patty", "Burger", "Cheese"])
-#print(first_meal)
+           
+startProgram()
